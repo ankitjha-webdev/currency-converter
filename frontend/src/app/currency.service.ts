@@ -2,11 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 @Injectable({
-  providedIn: 'root',
-  standalone: true,
-  imports:[
-    HttpClientModule
-  ]
+  providedIn: 'root'
 })
 export class CurrencyService {
   private http: inject(HttpClient)
@@ -21,15 +17,20 @@ export class CurrencyService {
 
   constructor() { }
 
-  convertCurrency(amount: number, fromCurrency: string, toCurrency: string): Observable<number | undefined> {
-    const fromRate = this.exchangeRates[fromCurrency];
-    const toRate = this.exchangeRates[toCurrency];
+  getLatestExchangeRates(): Observable<any> {
+    return this.http.get<any>(this.apiUrl);
+  }
 
-    if (fromRate !== undefined && toRate !== undefined) {
-      const result = (amount / fromRate) * toRate;
-      return of(result);
-    } else {
-      return of(undefined);
-    }
+  convertCurrency(amount: number, fromCurrency: string, toCurrency: string): Observable<number | undefined> {
+    return this.getLatestExchangeRates().pipe(map((response:any) => {
+      const fromRate = response.rates[fromCurrency];
+      const toRate = response.rates[toCurrency];
+
+      if (fromRate !== undefined && toRate !== undefined) {
+        return (amount / fromRate) * toRate;
+      } else {
+        return undefined;
+      }
+    }));
   }
 }

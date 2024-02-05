@@ -4,6 +4,8 @@ import { RouterOutlet } from '@angular/router';
 import { CurrencyService } from './currency.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators'
 
 @Component({
   selector: 'app-root',
@@ -20,34 +22,32 @@ import { CommonModule } from '@angular/common';
 export class AppComponent {
   title = 'frontend';
   _http = inject(HttpClient);
-  API_KEY = '86c4376903aa446e9c63fc2024197506';
-  url = 'https://openexchangerates.org/api/latest.json'
+  private API_KEY = '86c4376903aa446e9c63fc2024197506';
+  private apiUrl = `https://openexchangerates.org/api/latest.json?app_id=${this.API_KEY}`;
   amount: number = 1;
   fromCurrency: string = 'USD';
   toCurrency: string = 'EUR';
   result!: number | undefined;
-  
-  constructor(private currencyService: CurrencyService){
-    this.getLatestCurrency()
+
+  constructor(private currencyService: CurrencyService) {
+    this.getLatestExchangeRates()
   }
 
-  getLatestCurrency(){
-    this._http.get(`${this.url}?app_id=${this.API_KEY}`).subscribe({
-      next(value:any) {
-        console.log(value);
-        // Iterate this object
-      },
-      error(err) {
-        console.log(err);
-      },
-    })
+  getLatestExchangeRates(): Observable<any> {
+    return this._http.get<any>(this.apiUrl);
   }
 
   convertCurrency() {
-    this.currencyService
-      .convertCurrency(this.amount, this.fromCurrency, this.toCurrency)
-      .subscribe((conversionResult) => {
-        this.result = conversionResult;
-      });
+    return this.getLatestExchangeRates().pipe(map((response: any) => {
+      const fromRate = response.rates[this.fromCurrency];
+      const toRate = response.rates[this.toCurrency];
+
+      if (fromRate !== undefined && toRate !== undefined) {
+        this.result = (this.amount / fromRate) * toRate;
+      } else {
+        this.result = undefined;
+      }
+      // amount: number, fromCurrency: string, toCurrency: string
+    }));
   }
 }

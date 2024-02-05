@@ -1,13 +1,18 @@
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { CurrencyService } from './currency.service';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     RouterOutlet,
-    HttpClientModule
+    HttpClientModule,
+    FormsModule,
+    CommonModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
@@ -17,9 +22,12 @@ export class AppComponent {
   _http = inject(HttpClient);
   API_KEY = '86c4376903aa446e9c63fc2024197506';
   url = 'https://openexchangerates.org/api/latest.json'
-
+  amount: number = 1;
+  fromCurrency: string = 'USD';
+  toCurrency: string = 'EUR';
+  result!: number | undefined;
   
-  constructor(){
+  constructor(private currencyService: CurrencyService){
     this.getLatestCurrency()
   }
 
@@ -33,5 +41,13 @@ export class AppComponent {
         console.log(err);
       },
     })
+  }
+
+  convertCurrency() {
+    this.currencyService
+      .convertCurrency(this.amount, this.fromCurrency, this.toCurrency)
+      .subscribe((conversionResult) => {
+        this.result = conversionResult;
+      });
   }
 }

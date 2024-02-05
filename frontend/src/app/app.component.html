@@ -1,3 +1,5 @@
+<!-- src/app/currency-calculator/currency-calculator.component.html -->
+
 <div class="container mt-4">
   <h2>Currency Calculator</h2>
 
@@ -20,5 +22,9 @@
 
   <div *ngIf="result !== undefined" class="mt-3">
     <p>{{ amount }} {{ fromCurrency }} = {{ result }} {{ toCurrency }}</p>
+  </div>
+
+  <div *ngIf="result === undefined" class="mt-3">
+    <p>Conversion not possible. Please check the currency codes.</p>
   </div>
 </div>
